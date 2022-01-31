@@ -1,6 +1,7 @@
 # discord-factorio-chat
 
-discord-factorio-chat allows you to setup chat between Discord and Factorio server without disabling achievements 
+discord-factorio-chat allows you to setup chat between Discord and Factorio server without disabling achievements  
+uses rcon.exe from [gorcon/rcon-cli](https://github.com/gorcon/rcon-cli)
 
 ## Installation
 

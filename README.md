@@ -5,7 +5,7 @@ uses rcon.exe from [gorcon/rcon-cli](https://github.com/gorcon/rcon-cli)
 
 ## Installation
 
-Download latest from [releases](https://github.com/Aidan647/discord-factorio-chat/releases)  
+Download latest Source code from [releases](https://github.com/Aidan647/discord-factorio-chat/releases)  
 
 Install dependencies
 ```bash

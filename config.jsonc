@@ -1,0 +1,16 @@
+{
+
+	// Discord guild ID
+	"GuildId": "684508139646877708",
+	// Discord channel ID
+	"ChannelId": "690218013865017361",
+
+	// Rcon address:port
+	"RconAddress": "localhost:65535",
+
+
+	// Path to the server log file
+	// not factorio-current log file
+	// log file using --console-log argument
+	"logPath": "E:\\log\\log.txt"
+}

@@ -1,6 +1,5 @@
 import { exec } from "child_process"
 import { Tail } from "tail";
-import { RCON_PASSWORD } from "."
 export function watchLogs(path: string) {
 	return new Tail(path, {encoding: "utf8", });
 }
@@ -17,6 +16,8 @@ function execShellCommand(cmd: string) {
 export function sendToServer(address: string, text: string) {
 	//run rcon.exe
 	//rcon.exe -a <address> -p <password> <text>
-	const cmd = `rcon.exe -a ${address} -p ${RCON_PASSWORD} "${text.replaceAll('"', "").replaceAll('/', "")}"`
+	const cmd = `rcon.exe -a ${address} -p ${process.env.RCON_PASSWORD} "${text
+		.replaceAll('"', "")
+		.replaceAll("/", "")}"`
 	return execShellCommand(cmd)
 }

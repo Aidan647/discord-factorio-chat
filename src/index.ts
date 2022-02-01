@@ -1,12 +1,14 @@
 import { Client, Intents } from "discord.js"
-import { config } from "dotenv"
+import dotenv from "dotenv"
 import winston from "winston"
 import dayjs from "dayjs"
 import { sendToServer, watchLogs } from "./server"
 import fs from "fs/promises"
-import { setActivity } from './userActivity';
+import { setActivity } from "./userActivity"
 import { readFileSync } from "fs"
-config()
+import { configFile } from "./types"
+import { format } from "./format"
+dotenv.config()
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const stripJSONComments = (data: string) => {
@@ -15,19 +17,8 @@ const stripJSONComments = (data: string) => {
 }
 
 const jsonData = readFileSync("config.jsonc", "utf8")
-export const configData = JSON.parse(stripJSONComments(jsonData)) as {
-	GuildId: string
-	ChannelId: string
-	RconAddress: string
-	logPath: string
-}
+export const config = JSON.parse(stripJSONComments(jsonData)) as configFile
 
-export const guildId = configData.GuildId ?? ""
-export const channelId = configData.ChannelId ?? ""
-
-export const SERVERLOGS = configData.logPath ?? ""
-export const RCON_ADDRESS = configData.RconAddress ?? ""
-export const RCON_PASSWORD = process.env.RCON_PASSWORD ?? ""
 // setup winston
 const my_format = winston.format.printf(({ level, message, label, timestamp }) => {
 	return `${dayjs(timestamp).format("HH:mm:ss")} [${level}]: ${message}`
@@ -61,7 +52,20 @@ const logger = winston.createLogger({
 
 export const globals = {
 	serverStarted: false,
-	activeUsers: [] as string[]
+	activeUsers: [] as string[],
+	allUsers: [] as string[],
+}
+//check if file exists
+fs.stat("allUsers.json").then(
+	() => {
+		fs.readFile("allUsers.json", "utf8").then((data) => {
+			globals.allUsers = JSON.parse(data)
+		})
+	},
+	() => {}
+)
+function saveAllUsers() {
+	fs.writeFile("allUsers.json", JSON.stringify(globals.allUsers))
 }
 
 export const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] })
@@ -72,25 +76,24 @@ client.on("ready", async () => {
 	start().then(() => client.destroy())
 })
 async function start() {
-	// check if SERVERLOGS RCON_PASSWORD RCON_ADDRESS are not ""
-	if (SERVERLOGS === "") {
+	if (config.logPath === undefined || config.logPath === "") {
 		logger.error("logPath is not set")
 		return
 	}
-	if (RCON_ADDRESS === "") {
+	if (config.RconAddress === undefined || config.RconAddress === "") {
 		logger.error("RconAddress is not set")
 		return
 	}
-	if (RCON_PASSWORD === "") {
+	if (process.env.RCON_PASSWORD === undefined || process.env.RCON_PASSWORD === "") {
 		logger.error("RCON_PASSWORD is not set")
 		return
 	}
-	const guild = client.guilds.cache.get(guildId) ?? null
+	const guild = client.guilds.cache.get(config.GuildId) ?? null
 	if (!guild) {
 		logger.error("Could not find guild!")
 		return
 	}
-	const channel = guild.channels.cache.get(channelId) ?? null
+	const channel = guild.channels.cache.get(config.ChannelId) ?? null
 	if (!channel) {
 		logger.error("Could not find channel!")
 		return
@@ -100,11 +103,11 @@ async function start() {
 		return
 	}
 	logger.info("Starting...")
-	const server = watchLogs(SERVERLOGS)
+	const server = watchLogs(config.logPath)
 	server.on("error", (line) => {
 		logger.error(line)
 	})
-	const file = await fs.readFile(SERVERLOGS, "utf8")
+	const file = await fs.readFile(config.logPath, "utf8")
 	const lines = file.split("\n")
 	const openedRegEx = new RegExp(/^=== Log opened ([0-9]+(-[0-9]+)+) ([0-9]+(:[0-9]+)+) ===$/)
 	const closedRegEx = new RegExp(/^=== Log closed ([0-9]+(-[0-9]+)+) ([0-9]+(:[0-9]+)+) ===$/)
@@ -145,50 +148,50 @@ async function start() {
 		logger.info("Server is offline")
 	}
 	if (globals.serverStarted) {
-		logger.info("Server is already running")
+		logger.info("Server is running")
 	}
 	setActivity()
 
 	const collector = channel.createMessageCollector({ filter: (m) => !m.author.bot })
 	collector.on("collect", async (message) => {
-		if (message.content.toLowerCase().startsWith("!o")) {
+		const user = message.member?.nickname ?? message.author.username
+		const onlinePlayers = globals.activeUsers.join(", ")
+		const onlinePlayersCount = globals.activeUsers.length
+		const formatData = {
+			user,
+			online: onlinePlayersCount.toString(),
+			onlineList: onlinePlayers,
+			message: message.content.trim(),
+		}
+		if (config.OnlineCommand && message.content.toLowerCase().startsWith("!o")) {
 			if (globals.serverStarted) {
 				// return online players
-				const onlinePlayers = globals.activeUsers.join(", ")
-				if (onlinePlayers === "") message.channel.send("No players online")
-				else message.channel.send(`Online players: ${onlinePlayers}`)
+				if (onlinePlayersCount === 0) message.channel.send(format(config.OnlineCommandNoPlayers, formatData))
+				else message.channel.send(format(config.OnlineCommandReply, formatData))
 				return
 			} else {
-				message
-					.reply("Server is offline")
-					.then(async (message) => {
-						//delete message after 10 seconds
-						await delay(10000)
-						message.delete()
-					})
+				message.reply(format(config.OnlineCommandReplyServerOffline, formatData)).then(async (message) => {
+					//delete message after 10 seconds
+					await delay(config.ErrorMessageDeleteTimeout)
+					message.delete()
+				})
 				return
 			}
 		}
 
 		// logger.info(`Message from ${message.author.tag}`)
 		if (!globals.serverStarted) {
-			message
-				.reply("Server is not running! Your message will not be sent to the server.")
-				.then(async (message) => {
-					//delete message after 10 seconds
-					await delay(10000)
-					message.delete()
-				})
+			message.reply(format(config.ErrorServerNotRunning, formatData)).then(async (message) => {
+				//delete message after 10 seconds
+				await delay(config.ErrorMessageDeleteTimeout)
+				message.delete()
+			})
 			return
 		}
-		const content = message.content.trim()
-		sendToServer(
-			RCON_ADDRESS,
-			`[${message.member?.nickname ?? message.author.username}]: ${content}`
-		).catch((err) => {
-			message.reply("Could not send message to server!").then(async (message) => {
+		sendToServer(config.RconAddress, format(config.inGameMessageFormat, formatData)).catch((err) => {
+			message.reply(format(config.ErrorDelivering, formatData)).then(async (message) => {
 				//delete message after 10 seconds
-				await delay(10000)
+				await delay(config.ErrorMessageDeleteTimeout)
 				message.delete()
 			})
 			logger.error(err)
@@ -197,45 +200,66 @@ async function start() {
 	})
 
 	server.on("line", (line) => {
-		if (openedRegEx.test(line)) {
-			globals.serverStarted = true
-			setActivity()
-			channel.send("Server started")
-			logger.info("Server started")
-			return
+		if (config.ServerStatus) {
+			if (openedRegEx.test(line)) {
+				globals.serverStarted = true
+				setActivity()
+				channel.send(format(config.ServerStarted))
+				logger.info("Server started")
+				return
+			}
+			if (closedRegEx.test(line)) {
+				globals.serverStarted = false
+				setActivity()
+				channel.send(format(config.ServerStopped))
+				logger.info("Server stopped")
+				return
+			}
 		}
-		if (closedRegEx.test(line)) {
-			globals.serverStarted = false
-			setActivity()
-			channel.send("Server stopped")
-			logger.info("Server stopped")
-			return
-		}
-		if (userJoined.test(line)) {
+		if ((config.InGameWelcome || config.DiscordWelcome) && userJoined.test(line)) {
 			const user = userJoined.exec(line)?.[1] ?? ""
 			if (user !== "") {
-				globals.activeUsers.push(user)
-				setActivity()
-				channel.send(`**${user}** joined the server`)
+				// if user is in allUsers array, ignore
+				if (!globals.allUsers.includes(user)) {
+					globals.activeUsers.push(user)
+					globals.allUsers.push(user)
+					setActivity()
+					if (config.InGameWelcome) sendToServer(config.RconAddress, format(config.InGameMessage, { user }))
+					if (config.DiscordWelcome) channel.send(format(config.WelcomeMessage, { user }))
+					// add user to activeUsers array and save to file
+					saveAllUsers()
+					return
+				}
 			}
-			return
 		}
-		if (userLeft.test(line)) {
-			const user = userLeft.exec(line)?.[1] ?? ""
-			if (user !== "") {
-				globals.activeUsers.splice(globals.activeUsers.indexOf(user), 1)
-				setActivity()
-				channel.send(`**${user}** left the server`)
+		if (config.sendJoinLeave) {
+			if (userJoined.test(line)) {
+				const user = userJoined.exec(line)?.[1] ?? ""
+				if (user !== "") {
+					globals.activeUsers.push(user)
+					setActivity()
+					channel.send(format(config.JoinMessage, { user }))
+				}
+				return
 			}
-			return
+			if (userLeft.test(line)) {
+				const user = userLeft.exec(line)?.[1] ?? ""
+				if (user !== "") {
+					globals.activeUsers.splice(globals.activeUsers.indexOf(user), 1)
+					setActivity()
+					channel.send(format(config.LeaveMessage, { user }))
+				}
+				return
+			}
 		}
+
 		const textReg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[CHAT] (.+?): (.+)$/)
 		const textMatch = textReg.exec(line)
 		if (textMatch) {
 			const user = textMatch[1]
 			if (user === "<server>") return
 			const message = textMatch[2]
-			channel.send(`**[${user}]: **\`${message}\``)
+			channel.send(format(config.messageFormat, { user, message }))
 		}
 	})
 
@@ -246,13 +270,6 @@ async function start() {
 		})
 	})
 }
-
-// // Await !vote messages
-// const filter = m => m.content.startsWith('!vote');
-// // Errors: ['time'] treats ending because of the time limit as an error
-// channel.awaitMessages({ filter, max: 4, time: 60_000, errors: ['time'] })
-// 	.then(collected => console.log(collected.size))
-// 	.catch(collected => console.log(`After a minute, only ${collected.size} out of 4 voted.`));
 
 logger.info("Logging...")
 client.login(process.env.DISCORD_TOKEN)

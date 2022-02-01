@@ -12,5 +12,56 @@
 	// Path to the server log file
 	// not factorio-current log file
 	// log file using --console-log argument
-	"logPath": "E:\\log\\log.txt"
+	"logPath": "E:\\log\\log.txt",
+
+	// Custom fields are:
+	// {user} - user name
+	// {message} - message
+	// {online} - online players count
+	// {onlineList} - online players list (comma separated)
+
+	// Discord message format
+	"messageFormat": "**{user}:** {message}",
+	// In game message format
+	"inGameMessageFormat": "[{user}]: {message}",
+
+	// send Join/leave message to discord
+	"sendJoinLeave": true,
+	// Message to send when someone joins the server
+	"JoinMessage": "**{user}** joined the server",
+	// Message to send when someone leaves the server
+	"LeaveMessage": "**{user}** left the server.",
+
+	// Server status messages
+	"ServerStatus": true,
+	"ServerStarted": "Server started",
+	"ServerStopped": "Server stopped",
+
+	// Error reply messages
+	// Error reply message when the server is not running
+	"ErrorServerNotRunning": "Server is not running! Your message will not be sent to the server.",
+	// Error reply message when unknown error occurs
+	"ErrorDelivering": "Could not send message to server!",
+
+	// Auto delete replied error messages in seconds
+	"ErrorMessageDeleteTimeout": 15,
+	
+	// Show how many players are online on server
+	"OnlineCommand": true,
+	// No players online message
+	"OnlineCommandNoPlayers": "No players online",
+	// Show online players list
+	// "{online} online players"
+	"OnlineCommandReply": "Online players: {onlineList}",
+	// server is offline
+	"OnlineCommandReplyServerOffline": "Server is offline",
+
+	// InGame welcome new players
+	"InGameWelcome": true,
+	// Welcome message to be sent in game
+	"InGameMessage": "Welcome to the server {user}!",
+	// Discord welcome new players
+	"DiscordWelcome": true,
+	// Welcome message to be sent in discord instead of JoinMessage
+	"WelcomeMessage": "**{user}** joined the server for the first time!"
 }

@@ -19,7 +19,11 @@ export type configFile = {
 	ErrorDelivering: string
 	ErrorMessageDeleteTimeout: number
 
+	Commands: boolean
+	CommandsPrefix: string
+
 	OnlineCommand: boolean
+	OnlineCommandMessage: string
 	OnlineCommandNoPlayers: string
 	OnlineCommandReply: string
 	OnlineCommandReplyServerOffline: string
@@ -28,4 +32,19 @@ export type configFile = {
 	InGameMessage: string
 	DiscordWelcome: boolean
 	WelcomeMessage: string
+
+	Kick: boolean
+	KickMessage: string
+
+	Ban: boolean
+	BanMessage: string
+
+	Unban: boolean
+	UnbanMessage: string
+
+	Promote: boolean
+	PromoteMessage: string
+
+	Demote: boolean
+	DemoteMessage: string
 }

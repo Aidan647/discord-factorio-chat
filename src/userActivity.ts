@@ -2,7 +2,10 @@ import { Client } from "discord.js"
 import { client, globals } from "."
 
 export function setActivity() {
-	const users = globals.activeUsers.length
+	// remove duplicates from activeUsers
+	// just in case
+	const uniqueUsers = [...new Set(globals.activeUsers)]
+	const users = uniqueUsers.length
 	client.user?.setPresence({
 		status: globals.serverStarted ? "online" : "idle", // You can show online, idle... Do not disturb is dnd
 		activities: globals.serverStarted

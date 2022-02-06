@@ -16,9 +16,12 @@
 
 	// Custom fields are:
 	// {user} - user name
+	// {actionAuthor} - user name who performed the action
 	// {message} - message
 	// {online} - online players count
 	// {onlineList} - online players list (comma separated)
+	// {reason} - reason for action
+	// {role} - role name
 
 	// Discord message format
 	"messageFormat": "**{user}:** {message}",
@@ -46,12 +49,18 @@
 	// Auto delete replied error messages in seconds
 	"ErrorMessageDeleteTimeout": 15,
 	
+	// Commands
+	"Commands": true,
+	"CommandsPrefix": "!",
+
 	// Show how many players are online on server
 	"OnlineCommand": true,
+	// command to send to trigger online command
+	"OnlineCommandMessage": "online",
 	// No players online message
 	"OnlineCommandNoPlayers": "No players online",
 	// Show online players list
-	// "{online} online players"
+	// another example: "{online} online players"
 	"OnlineCommandReply": "Online players: {onlineList}",
 	// server is offline
 	"OnlineCommandReplyServerOffline": "Server is offline",
@@ -63,5 +72,22 @@
 	// Discord welcome new players
 	"DiscordWelcome": true,
 	// Welcome message to be sent in discord instead of JoinMessage
-	"WelcomeMessage": "**{user}** joined the server for the first time!"
+	"WelcomeMessage": "**{user}** joined the server for the first time!",
+
+	// Kick and ban in Discord messages
+	"Kick": true,
+	"KickMessage": "**{user}** was kicked by **{actionAuthor}**. Reason: **{reason}**.",
+
+	"Ban": true,
+	"BanMessage": "**{user}** was banned by **{actionAuthor}**. Reason: **{reason}**.",
+
+	"Unban": true,
+	"UnbanMessage": "**{user}** was unbanned by **{actionAuthor}**.",
+
+	// Promote and demote to send in Discord
+	"Promote": true,
+	"PromoteMessage": "**{user}** was promoted to {role} by **{actionAuthor}**.",
+
+	"Demote": true,
+	"DemoteMessage": "**{user}** was demoted from {role} by **{actionAuthor}**."
 }

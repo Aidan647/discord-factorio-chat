@@ -15,7 +15,7 @@ const close: Event = {
 		setActivity()
 		if (!silent) {
 			if (config.ServerStatus && globals.channel)
-				globals.channel.send(format(config.ServerStopped, {}))
+				globals.channel.send(format(config.ServerStatus.Stopped, {}))
 		}
 	},
 }

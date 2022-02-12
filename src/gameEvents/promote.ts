@@ -15,8 +15,8 @@ const promote: Event = {
 			const role = exec?.[2] ?? ""
 			const actionAuthor = exec?.[3] ?? ""
 			if (user !== "") {
-				if (config.Promote && globals.channel)
-					globals.channel.send(format(config.PromoteMessage, { user, role, actionAuthor }))
+				if (config.Other.Promote && globals.channel)
+					globals.channel.send(format(config.Other.PromoteMessage, { user, role, actionAuthor }))
 			}
 		}
 	},

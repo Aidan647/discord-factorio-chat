@@ -19,8 +19,8 @@ const leave: Event = {
 				globals.activeUsers = globals.activeUsers.filter(u => u !== user)
 			if (!silent) {
 				setActivity()
-				if (config.sendJoinLeave && globals.channel)
-					globals.channel.send(format(config.LeaveMessage, { user }))
+				if (config.JoinLeave.Enable && globals.channel)
+					globals.channel.send(format(config.JoinLeave.LeaveMessage, { user }))
 			}
 		}
 	},

@@ -21,8 +21,8 @@ const kick: Event = {
 			globals.activeUsers = globals.activeUsers.filter((u) => u !== user)
 			if (!silent) {
 				setActivity()
-				if (config.Kick && globals.channel)
-					globals.channel.send(format(config.KickMessage, { user, actionAuthor, reason }))
+				if (config.Other.Kick && globals.channel)
+					globals.channel.send(format(config.Other.KickMessage, { user, actionAuthor, reason }))
 			}
 		}
 	},

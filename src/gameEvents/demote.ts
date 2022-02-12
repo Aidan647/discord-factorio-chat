@@ -15,8 +15,8 @@ const demote: Event = {
 			const role = exec?.[2] ?? ""
 			const actionAuthor = exec?.[3] ?? ""
 			if (user !== "") {
-				if (config.Demote && globals.channel)
-					globals.channel.send(format(config.DemoteMessage, { user, role, actionAuthor }))
+				if (config.Other.Demote && globals.channel)
+					globals.channel.send(format(config.Other.DemoteMessage, { user, role, actionAuthor }))
 			}
 		}
 	},

@@ -1,50 +1,73 @@
 export type configFile = {
-	GuildId: string
-	ChannelId: string
-	RconAddress: string
-	logPath: string
+	Settings: {
+		GuildId: string
+		ChannelId: string
 
-	messageFormat: string
-	inGameMessageFormat: string
+		RconAddress: string
+		LogPath: string
+	}
 
-	sendJoinLeave: boolean
-	JoinMessage: string
-	LeaveMessage: string
+	DiscordMessageFormat: string
+	FactorioMessageFormat: string
 
-	ServerStatus: boolean
-	ServerStarted: string
-	ServerStopped: string
+	JoinLeave: {
+		Enable: boolean
+		JoinMessage: string
+		LeaveMessage: string
+	}
 
-	ErrorServerNotRunning: string
-	ErrorDelivering: string
-	ErrorMessageDeleteTimeout: number
+	ServerStatus: {
+		Enable: boolean
+		Started: string
+		Stopped: string
+	}
 
-	Commands: boolean
-	CommandsPrefix: string
+	Errors: {
+		ErrorServerNotRunning: string
+		ErrorDelivering: string
 
-	OnlineCommand: boolean
-	OnlineCommandMessage: string
-	OnlineCommandNoPlayers: string
-	OnlineCommandReply: string
-	OnlineCommandReplyServerOffline: string
+		DeleteTimeout: number
+	}
 
-	InGameWelcome: boolean
-	InGameMessage: string
-	DiscordWelcome: boolean
-	WelcomeMessage: string
+	Bot:{
+		AllowOtherBots: boolean
+	}
 
-	Kick: boolean
-	KickMessage: string
+	Commands: {
+		Enable: boolean
+		Prefix: string
 
-	Ban: boolean
-	BanMessage: string
+		Online: {
+			enable: boolean
+			Request: string
+			Aliases: string[]
+			NoPlayers: string
+			Reply: string
+			ReplyServerOffline: string
+		}
+	}
 
-	Unban: boolean
-	UnbanMessage: string
+	Welcome: {
+		InGame: boolean
+		InGameMessage: string
+		Discord: boolean
+		DiscordMessage: string
+	}
 
-	Promote: boolean
-	PromoteMessage: string
+	Other: {
+		Kick: boolean
+		KickMessage: string
 
-	Demote: boolean
-	DemoteMessage: string
+		Ban: boolean
+		BanMessage: string
+
+		Unban: boolean
+		UnbanMessage: string
+
+		Promote: boolean
+		PromoteMessage: string
+
+		Demote: boolean
+		DemoteMessage: string
+	}
 }

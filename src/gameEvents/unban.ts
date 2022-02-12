@@ -14,8 +14,8 @@ const unban: Event = {
 			const user = exec?.[1] ?? ""
 			const actionAuthor = exec?.[2] ?? ""
 			if (user !== "") {
-				if (config.Unban && globals.channel)
-					globals.channel.send(format(config.UnbanMessage, { user, actionAuthor }))
+				if (config.Other.Unban && globals.channel)
+					globals.channel.send(format(config.Other.UnbanMessage, { user, actionAuthor }))
 			}
 		}
 	},

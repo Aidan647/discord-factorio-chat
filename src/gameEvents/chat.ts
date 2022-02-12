@@ -20,7 +20,7 @@ const chat: Event = {
 			const user = exec?.[1] ?? ""
 			const message = exec?.[2] ?? ""
 
-			globals.channel.send(format(config.messageFormat, { user, message }))
+			globals.channel.send(format(config.DiscordMessageFormat, { user, message }))
 		}
 	},
 }

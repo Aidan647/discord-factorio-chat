@@ -8,27 +8,27 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const online: Event = {
 	name: "online",
 	check: (message) => {
-		if (config.Commands && message.content.startsWith(config.CommandsPrefix)) return false
+		if (config.Commands && message.content.startsWith(config.Commands.Prefix)) return false
 		return true
 	},
 	callback: async (message) => {
 		if (globals.serverStarted) {
+			console.log(message)
 			sendToServer(
-				config.RconAddress,
-				format(config.inGameMessageFormat, {
+				format(config.FactorioMessageFormat, {
 					message: message.content.trim(),
 					user: message.member?.nickname ?? message.author.username,
 				})
 			).catch((err) => {
 				message
 					.reply(
-						format(config.ErrorDelivering, {
+						format(config.Errors.ErrorDelivering, {
 							message: message.content.trim(),
 							user: message.member?.nickname ?? message.author.username,
 						})
 					)
 					.then(async (message) => {
-						await delay(config.ErrorMessageDeleteTimeout)
+						await delay(config.Errors.DeleteTimeout * 1000)
 						message.delete()
 					})
 				logger.error(err)
@@ -37,13 +37,13 @@ const online: Event = {
 		} else {
 			message
 				.reply(
-					format(config.ErrorServerNotRunning, {
+					format(config.Errors.ErrorServerNotRunning, {
 						message: message.content.trim(),
 						user: message.member?.nickname ?? message.author.username,
 					})
 				)
 				.then(async (message) => {
-					await delay(config.ErrorMessageDeleteTimeout)
+					await delay(config.Errors.DeleteTimeout * 1000)
 					message.delete()
 				})
 			return

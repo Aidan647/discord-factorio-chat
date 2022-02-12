@@ -1,16 +1,32 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals, logger, saveAllUsers } from "../index"
+import { config, globals, logger, saveAllUsers } from "../"
 import { sendToServer } from "../server"
 import { setActivity } from "../userActivity"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const chat: Event = {
-	name: "chat",
+const customFields: {
+	aliases: string[]
+} = {
+	aliases: []
+}
+
+const online: Event = {
+	name: "online",
+	init: async () => {
+		customFields.aliases = [...new Set(config.Commands.Online.Aliases)]
+		customFields.aliases.push(config.Commands.Online.Request)
+	},
 	check: (message) => {
-		if (config.Commands && message.content.startsWith(config.CommandsPrefix))
-			return message.content === config.CommandsPrefix + config.OnlineCommandMessage
+		if (config.Commands && message.content.trim().startsWith(config.Commands.Prefix)) {
+			const command = message.content.trim().substring(config.Commands.Prefix.length).split(" ")
+			//config.Commands.Prefix + config.Commands.Online.Request
+			// return true if if first word is prefix + alias
+			for (const alias of customFields.aliases) {
+				if (command[0] === alias) return true
+			}
+		}
 		return false
 	},
 	callback: async (message) => {
@@ -20,12 +36,12 @@ const chat: Event = {
 			const users = [...new Set(globals.activeUsers)]
 			const onlinePlayersCount = users.length
 			const data = { online: onlinePlayersCount.toString(), onlineList: users.join(", ") }
-			if (onlinePlayersCount === 0) message.channel.send(format(config.OnlineCommandNoPlayers, data))
-			else message.channel.send(format(config.OnlineCommandReply, data))
+			if (onlinePlayersCount === 0) message.channel.send(format(config.Commands.Online.NoPlayers, data))
+			else message.channel.send(format(config.Commands.Online.Reply, data))
 			return
 		} else {
-			message.reply(format(config.OnlineCommandReplyServerOffline, {})).then(async (message) => {
-				await delay(config.ErrorMessageDeleteTimeout)
+			message.reply(format(config.Commands.Online.ReplyServerOffline, {})).then(async (message) => {
+				await delay(config.Errors.DeleteTimeout * 1000)
 				message.delete()
 			})
 			return
@@ -33,4 +49,4 @@ const chat: Event = {
 	},
 }
 
-export default chat
+export default online

@@ -19,8 +19,8 @@ const ban: Event = {
 			globals.activeUsers = globals.activeUsers.filter((u) => u !== user)
 			if (!silent) {
 				setActivity()
-				if (config.Ban && globals.channel)
-					globals.channel.send(format(config.BanMessage, { user, actionAuthor, reason }))
+				if (config.Other.Ban && globals.channel)
+					globals.channel.send(format(config.Other.BanMessage, { user, actionAuthor, reason }))
 			}
 		}
 	},

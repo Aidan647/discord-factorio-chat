@@ -8,7 +8,7 @@ import { setActivity } from "./userActivity"
 import { readFileSync } from "fs"
 import { configFile } from "./types"
 import watchGame from "./gameEvents"
-import watchDiscord from "./discordEvents/index"
+import {watchDiscord, initDiscord} from "./discordEvents/index"
 
 dotenv.config()
 
@@ -84,11 +84,11 @@ client.on("ready", async () => {
 	start().then(() => client.destroy())
 })
 async function start() {
-	if (config.logPath === undefined || config.logPath === "") {
+	if (config.Settings.LogPath === undefined || config.Settings.LogPath === "") {
 		logger.error("logPath is not set")
 		return
 	}
-	if (config.RconAddress === undefined || config.RconAddress === "") {
+	if (config.Settings.RconAddress === undefined || config.Settings.RconAddress === "") {
 		logger.error("RconAddress is not set")
 		return
 	}
@@ -96,12 +96,12 @@ async function start() {
 		logger.error("RCON_PASSWORD is not set")
 		return
 	}
-	const guild = client.guilds.cache.get(config.GuildId) ?? null
+	const guild = client.guilds.cache.get(config.Settings.GuildId) ?? null
 	if (!guild) {
 		logger.error("Could not find guild!")
 		return
 	}
-	const channel = guild.channels.cache.get(config.ChannelId) ?? null
+	const channel = guild.channels.cache.get(config.Settings.ChannelId) ?? null
 	if (!channel) {
 		logger.error("Could not find channel!")
 		return
@@ -112,15 +112,16 @@ async function start() {
 	}
 	globals.channel = channel
 	logger.info("Starting...")
-	const server = watchLogs(config.logPath)
+	const server = watchLogs(config.Settings.LogPath)
 	server.on("error", (line) => {
 		logger.error(line)
 	})
-	const file = await fs.readFile(config.logPath, "utf8")
+	const file = await fs.readFile(config.Settings.LogPath, "utf8")
 	const lines = file.split("\n")
 	const openedRegEx = new RegExp(/^=== Log opened ([0-9]+(-[0-9]+)+) ([0-9]+(:[0-9]+)+) ===$/)
 	const closedRegEx = new RegExp(/^=== Log closed ([0-9]+(-[0-9]+)+) ([0-9]+(:[0-9]+)+) ===$/)
 	const activeServerList: string[] = []
+	await initDiscord()
 	// find last line matching openedRegEx or closedRegEx
 	while (lines.length > 0) {
 		const line = lines.pop() ?? ""
@@ -149,7 +150,8 @@ async function start() {
 
 	const collector = channel.createMessageCollector({ filter: (m) => !m.author.bot })
 	collector.on("collect", async (message) => {
-		if (message.author.bot) return
+		if (!config.Bot.AllowOtherBots && message.author.bot) return
+		if (message.author.id === client.user?.id) return
 		watchDiscord(message)
 	})
 

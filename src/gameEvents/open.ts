@@ -13,8 +13,8 @@ const open: Event = {
 		globals.serverStarted = true
 		setActivity()
 		if (!silent) {
-			if (config.ServerStatus && globals.channel)
-				globals.channel.send(format(config.ServerStarted, {}))
+			if (config.ServerStatus.Enable && globals.channel)
+				globals.channel.send(format(config.ServerStatus.Started, {}))
 		}
 	},
 }

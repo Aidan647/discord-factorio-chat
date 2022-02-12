@@ -25,11 +25,11 @@ const join: Event = {
 			}
 			if (!silent) {
 				setActivity()
-				if (config.InGameWelcome && newUser) sendToServer(config.RconAddress, format(config.InGameMessage, { user }))
-				if (config.DiscordWelcome && newUser && globals.channel)
-					globals.channel.send(format(config.WelcomeMessage, { user }))
-				else if (config.sendJoinLeave && globals.channel)
-					globals.channel.send(format(config.JoinMessage, { user }))
+				if (config.Welcome.InGame && newUser) sendToServer(format(config.Welcome.InGameMessage, { user }))
+				if (config.Welcome.Discord && newUser && globals.channel)
+					globals.channel.send(format(config.Welcome.DiscordMessage, { user }))
+				else if (config.JoinLeave.Enable && globals.channel)
+					globals.channel.send(format(config.JoinLeave.JoinMessage, { user }))
 			}
 		}
 	}

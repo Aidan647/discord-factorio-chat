@@ -1,8 +1,9 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals, logger, saveAllUsers } from "../index"
-import { sendToServer } from "../server"
+import { globals, logger, saveAllUsers } from "../index"
+import { sendToDiscord, sendToServer } from "../server"
 import { setActivity } from "../userActivity"
+import { config } from "../config"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[JOIN] (.+?) joined the game$/)
 const join: Event = {
@@ -25,11 +26,13 @@ const join: Event = {
 			}
 			if (!silent) {
 				setActivity()
-				if (config.Welcome.InGame && newUser) sendToServer(format(config.Welcome.InGameMessage, { user }))
+				if (config.Welcome.InGame && newUser) sendToServer(format(config.Welcome.InGameMessage, { user })).catch((err) => {
+					logger.error(err)
+				})
 				if (config.Welcome.Discord && newUser && globals.channel)
-					globals.channel.send(format(config.Welcome.DiscordMessage, { user }))
+					sendToDiscord(format(config.Welcome.DiscordMessage, { user }))
 				else if (config.JoinLeave.Enable && globals.channel)
-					globals.channel.send(format(config.JoinLeave.JoinMessage, { user }))
+					sendToDiscord(format(config.JoinLeave.JoinMessage, { user }))
 			}
 		}
 	}

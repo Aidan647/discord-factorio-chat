@@ -1,7 +1,9 @@
 import { Event } from "."
+import { config } from "../config"
 import { format } from "../format"
-import { config, globals, logger, saveAllUsers } from "../index"
-import { sendToServer } from "../server"
+import { delay, globals, logger, saveAllUsers } from "../index"
+import { items } from "../locale"
+import { sendToDiscord, sendToServer } from "../server"
 import { setActivity } from "../userActivity"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[CHAT] (.+?): (.+)$/)
@@ -18,9 +20,19 @@ const chat: Event = {
 		if (!silent && globals.channel) {
 			const exec = reg.exec(line)
 			const user = exec?.[1] ?? ""
-			const message = exec?.[2] ?? ""
-
-			globals.channel.send(format(config.DiscordMessageFormat, { user, message }))
+			var message = exec?.[2] ?? ""
+			if (config.Chat.ResolveItems) {
+				message = message
+					.replace(/\[special-item=internal_\d+\]/gm, "*[Blueprint]*")
+				// if message contains key from items list, replace it with value
+				for (const [key, value] of Object.entries(items)) {
+					if (message.includes(key)) {
+						message = message.replace(new RegExp(`\\[[^[\\]]+?=${key}\\]`, "gm"), `***[${value}]*** `)
+					}
+				}
+				
+			}
+			await sendToDiscord(format(config.DiscordMessageFormat, { user, message }))
 		}
 	},
 }

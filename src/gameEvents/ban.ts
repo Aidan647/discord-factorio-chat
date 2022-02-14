@@ -1,7 +1,9 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals } from "../index"
+import { globals } from "../index"
 import { setActivity } from "../userActivity"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[BAN] (.+?) was banned by (.+?)\. Reason: (.+?).$/)
 const ban: Event = {
@@ -20,7 +22,7 @@ const ban: Event = {
 			if (!silent) {
 				setActivity()
 				if (config.Other.Ban && globals.channel)
-					globals.channel.send(format(config.Other.BanMessage, { user, actionAuthor, reason }))
+					sendToDiscord(format(config.Other.BanMessage, { user, actionAuthor, reason }))
 			}
 		}
 	},

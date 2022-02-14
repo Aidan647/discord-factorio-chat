@@ -1,4 +1,5 @@
-import { Client, Intents, TextChannel } from "discord.js"
+import { awaitConfig, config } from "./config"
+import { Client, Guild, Intents, TextChannel } from "discord.js"
 import dotenv from "dotenv"
 import winston from "winston"
 import dayjs from "dayjs"
@@ -6,20 +7,14 @@ import { watchLogs } from "./server"
 import fs from "fs/promises"
 import { setActivity } from "./userActivity"
 import { readFileSync } from "fs"
-import { configFile } from "./types"
 import watchGame from "./gameEvents"
-import {watchDiscord, initDiscord} from "./discordEvents/index"
+import { watchDiscord, initDiscord } from "./discordEvents/index"
+import { awaitLocale } from "./locale"
+import { verifyPlayerCount } from "./lib/online"
 
 dotenv.config()
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-const stripJSONComments = (data: string) => {
-	var re = new RegExp("//(.*)", "g")
-	return data.replace(re, "")
-}
-
-const jsonData = readFileSync("config.jsonc", "utf8")
-export const config = JSON.parse(stripJSONComments(jsonData)) as configFile
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // setup winston
 const my_format = winston.format.printf(({ level, message, label, timestamp }) => {
@@ -37,6 +32,7 @@ const logLevels = {
 		info: "white",
 	},
 }
+winston.format.colorize()
 winston.addColors(logLevels.colors)
 export const logger = winston.createLogger({
 	levels: logLevels.levels,
@@ -51,17 +47,25 @@ export const logger = winston.createLogger({
 		// new winston.transports.File({ filename: "logs/error.log", level: "error" }),
 	],
 })
+export const fileExists = async (path: string) => {
+	return fs.stat(path).then(
+		() => true,
+		() => false
+	)
+}
 
 export const globals: {
 	serverStarted: boolean
 	activeUsers: string[]
 	allUsers: string[]
 	channel: TextChannel | null
+	guild: Guild | null
 } = {
 	serverStarted: false,
 	activeUsers: [],
 	allUsers: [],
 	channel: null,
+	guild: null,
 }
 //check if file exists
 fs.stat("allUsers.json").then(
@@ -84,33 +88,22 @@ client.on("ready", async () => {
 	start().then(() => client.destroy())
 })
 async function start() {
-	if (config.Settings.LogPath === undefined || config.Settings.LogPath === "") {
-		logger.error("logPath is not set")
-		return
-	}
-	if (config.Settings.RconAddress === undefined || config.Settings.RconAddress === "") {
-		logger.error("RconAddress is not set")
-		return
-	}
-	if (process.env.RCON_PASSWORD === undefined || process.env.RCON_PASSWORD === "") {
-		logger.error("RCON_PASSWORD is not set")
-		return
-	}
 	const guild = client.guilds.cache.get(config.Settings.GuildId) ?? null
 	if (!guild) {
 		logger.error("Could not find guild!")
-		return
+		return process.exit(1)
 	}
 	const channel = guild.channels.cache.get(config.Settings.ChannelId) ?? null
 	if (!channel) {
 		logger.error("Could not find channel!")
-		return
+		return process.exit(1)
 	}
 	if (channel.type !== "GUILD_TEXT") {
 		logger.error("Channel is not a guild text channel!")
-		return
+		return process.exit(1)
 	}
 	globals.channel = channel
+	globals.guild = guild
 	logger.info("Starting...")
 	const server = watchLogs(config.Settings.LogPath)
 	server.on("error", (line) => {
@@ -146,7 +139,16 @@ async function start() {
 	if (globals.serverStarted) {
 		logger.info("Server is running")
 	}
+	await verifyPlayerCount(true)
 	setActivity()
+	// verifyPlayerCount every minute
+	// if server is running
+	if (config.Players.VerifyInterval > 0)
+		setInterval(() => {
+			if (globals.serverStarted) {
+				verifyPlayerCount()
+			}
+		}, config.Players.VerifyInterval * 1000)
 
 	const collector = channel.createMessageCollector({ filter: (m) => !m.author.bot })
 	collector.on("collect", async (message) => {
@@ -166,6 +168,26 @@ async function start() {
 		})
 	})
 }
-
-logger.info("Logging...")
-client.login(process.env.DISCORD_TOKEN)
+;(async () => {
+	// load config
+	logger.info("Loading config...")
+	await awaitConfig
+	if (config.Settings.LogPath === undefined || config.Settings.LogPath === "") {
+		logger.error("logPath is not set")
+		return process.exit(1)
+	}
+	if (!await fileExists(config.Settings.LogPath)) {
+		logger.error("Log file does not exist. Check LogPath in config.json")
+		return process.exit(1)
+	}
+	if (config.Settings.RconAddress === undefined || config.Settings.RconAddress === "") {
+		logger.error("RconAddress is not set")
+		return process.exit(1)
+	}
+	if (process.env.RCON_PASSWORD === undefined || process.env.RCON_PASSWORD === "") {
+		logger.error("RCON_PASSWORD is not set")
+		return process.exit(1)
+	}
+	await awaitLocale
+	client.login(process.env.DISCORD_TOKEN)
+})()

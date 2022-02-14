@@ -1,6 +1,8 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals } from "../index"
+import { globals } from "../index"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[DEMOTE] (.+?) was demoted from (.+?) by (.+?)\.$/)
 const demote: Event = {
@@ -16,7 +18,7 @@ const demote: Event = {
 			const actionAuthor = exec?.[3] ?? ""
 			if (user !== "") {
 				if (config.Other.Demote && globals.channel)
-					globals.channel.send(format(config.Other.DemoteMessage, { user, role, actionAuthor }))
+					sendToDiscord(format(config.Other.DemoteMessage, { user, role, actionAuthor }))
 			}
 		}
 	},

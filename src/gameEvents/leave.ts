@@ -1,7 +1,9 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals, logger } from "../index"
+import { globals, logger } from "../index"
 import { setActivity } from "../userActivity"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[LEAVE] (.+?) left the game$/)
 const leave: Event = {
@@ -20,7 +22,7 @@ const leave: Event = {
 			if (!silent) {
 				setActivity()
 				if (config.JoinLeave.Enable && globals.channel)
-					globals.channel.send(format(config.JoinLeave.LeaveMessage, { user }))
+					sendToDiscord(format(config.JoinLeave.LeaveMessage, { user }))
 			}
 		}
 	},

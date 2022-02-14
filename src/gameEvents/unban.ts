@@ -1,6 +1,8 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals } from "../index"
+import { globals } from "../index"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[UNBANNED] (.+?) was unbanned by (.+?)\.$/)
 const unban: Event = {
@@ -15,7 +17,7 @@ const unban: Event = {
 			const actionAuthor = exec?.[2] ?? ""
 			if (user !== "") {
 				if (config.Other.Unban && globals.channel)
-					globals.channel.send(format(config.Other.UnbanMessage, { user, actionAuthor }))
+					sendToDiscord(format(config.Other.UnbanMessage, { user, actionAuthor }))
 			}
 		}
 	},

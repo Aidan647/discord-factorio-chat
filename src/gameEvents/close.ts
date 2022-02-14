@@ -1,7 +1,9 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals } from "../index"
+import { globals } from "../index"
 import { setActivity } from "../userActivity"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^=== Log closed ([0-9]+(-[0-9]+)+) ([0-9]+(:[0-9]+)+) ===$/)
 const close: Event = {
@@ -15,7 +17,7 @@ const close: Event = {
 		setActivity()
 		if (!silent) {
 			if (config.ServerStatus && globals.channel)
-				globals.channel.send(format(config.ServerStatus.Stopped, {}))
+				sendToDiscord(format(config.ServerStatus.Stopped, {}))
 		}
 	},
 }

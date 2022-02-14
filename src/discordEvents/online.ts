@@ -1,7 +1,7 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals, logger, saveAllUsers } from "../"
-import { sendToServer } from "../server"
+import { globals, logger, saveAllUsers } from "../"
+import { config } from "../config"
 import { setActivity } from "../userActivity"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -19,7 +19,7 @@ const online: Event = {
 		customFields.aliases.push(config.Commands.Online.Request)
 	},
 	check: (message) => {
-		if (config.Commands && message.content.trim().startsWith(config.Commands.Prefix)) {
+		if (config.Commands.Enable && config.Commands.Online.Enable && message.content.trim().startsWith(config.Commands.Prefix)) {
 			const command = message.content.trim().substring(config.Commands.Prefix.length).split(" ")
 			//config.Commands.Prefix + config.Commands.Online.Request
 			// return true if if first word is prefix + alias
@@ -41,6 +41,7 @@ const online: Event = {
 			return
 		} else {
 			message.reply(format(config.Commands.Online.ReplyServerOffline, {})).then(async (message) => {
+				if (config.Errors.DeleteTimeout <= 0) return
 				await delay(config.Errors.DeleteTimeout * 1000)
 				message.delete()
 			})

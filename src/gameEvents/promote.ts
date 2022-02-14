@@ -1,6 +1,8 @@
 import { Event } from "."
 import { format } from "../format"
-import { config, globals } from "../index"
+import { globals } from "../index"
+import { config } from "../config"
+import { sendToDiscord } from "../server"
 
 const reg = new RegExp(/^[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+ \[PROMOTE] (.+?) was promoted to (.+?) by (.+?)\.$/)
 const promote: Event = {
@@ -16,7 +18,7 @@ const promote: Event = {
 			const actionAuthor = exec?.[3] ?? ""
 			if (user !== "") {
 				if (config.Other.Promote && globals.channel)
-					globals.channel.send(format(config.Other.PromoteMessage, { user, role, actionAuthor }))
+					sendToDiscord(format(config.Other.PromoteMessage, { user, role, actionAuthor }))
 			}
 		}
 	},

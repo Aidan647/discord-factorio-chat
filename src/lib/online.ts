@@ -3,7 +3,14 @@ import { sendCommand } from "../server"
 
 export async function verifyPlayerCount(log = false) {
 	// get player and fix globals.players if needed
-	const players = await getPlayers()
+	var failed = null
+	const players = await getPlayers().catch((e) => {
+		failed = e
+	})
+	if (failed !== null) {
+		throw failed
+	}
+	if (!players) throw null
 	Object.entries(players).forEach(([player, online]) => {
 		// add player if not in allUsers 
 		if (!globals.allUsers.includes(player)) {

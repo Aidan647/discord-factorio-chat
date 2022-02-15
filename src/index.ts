@@ -139,14 +139,18 @@ async function start() {
 	if (globals.serverStarted) {
 		logger.info("Server is running")
 	}
-	await verifyPlayerCount(true)
+	await verifyPlayerCount(true).catch((e) => {
+		logger.error("Initial player count check failed:" + e)
+	})
 	setActivity()
 	// verifyPlayerCount every minute
 	// if server is running
 	if (config.Players.VerifyInterval > 0)
 		setInterval(() => {
 			if (globals.serverStarted) {
-				verifyPlayerCount()
+				verifyPlayerCount().catch((e) => {
+					logger.error("Player count check failed" + e)
+				})
 			}
 		}, config.Players.VerifyInterval * 1000)
 

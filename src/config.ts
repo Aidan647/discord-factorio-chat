@@ -90,7 +90,7 @@ function verify(obj: OBJ) {
 async function loadConfig() {
 	// check if config file exists
 	if (await fileExists("config.json")) {
-		const configData = JSON.parse(stripJSONComments(await fs.readFile("config.json", "utf8"))) as configFile
+		const configData = JSON.parse(await fs.readFile("config.json", "utf8")) as configFile
 		if (verify(configData)) {
 			//TODO fix this shit
 			type configKeys = keyof configFile
